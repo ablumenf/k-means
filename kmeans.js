@@ -121,7 +121,9 @@ function resetPoints() {
 	error = 0;
 	converged = false;
 	convergedText = "";
-	centroids[0].size = centroids[1].size = centroids[2].size = 0;
+	for(var i = 0; i < centroids.length; i++) {
+		centroids[i].size = 0;
+	}
 	initStats();
 }
 
