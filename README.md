@@ -4,6 +4,8 @@ k-means visualization (specifically 3-means) <br>
 Last Updated: October 5, 2017 <br>
 Author: Aaron Blumenfeld
 
+![k-means](kmeans_screenshot.jpg)
+
 ## ABOUT:
 
 Points are generated (semi-)randomly: 135 points are generated. A 30-point cluster in the top left is generated,
