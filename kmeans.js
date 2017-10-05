@@ -19,7 +19,32 @@ var MIDDLE_RIGHT_CLUSTER_SIZE = 20;
 var BOTTOM_CLUSTER_SIZE = 35;
 var NUM_ADDITIONAL_POINTS = 50;
 var NUM_CLUSTERS = 3;
-var COLORS = ["red", "green", "blue"];
+var COLORS = ["#910b28", "#178250", "#1266ed", "#ff7b00", "#80aa03"]; // red, blue, green, orange, yellowish-green
+
+function changeNumClusters(n) {
+	NUM_CLUSTERS = n;
+	resetCentroids();
+}
+
+function showNumberWithCommas(x) {
+	var xAsString = "" + x;
+	var decimalIndex = xAsString.indexOf(".");
+	var integerPart = "", decimalPart = "";
+	if(decimalIndex >= 0) {
+		var integerPart = xAsString.substring(0, xAsString.indexOf("."));
+		var decimalPart = xAsString.substring(xAsString.indexOf(".") + 1, xAsString.length);
+	} else integerPart = xAsString;
+	var rval = "";
+	while(integerPart.length > 3) {
+		rval = "," + integerPart.substring(integerPart.length - 3, integerPart.length) + rval;
+		integerPart = integerPart.substring(0, integerPart.length - 3);
+	}
+	rval = integerPart + rval;
+	if(decimalIndex >= 0){
+		rval += "." + decimalPart;
+	}
+	return rval;
+}
 
 function initStats() {
 	document.getElementById("iters").innerHTML = "Number of iterations: " + numIters;
@@ -149,6 +174,11 @@ function badCentroids() { // assumes at least 3 clusters
 	centroids[centroids.length-2].y = RECT_HEIGHT + 3;
 	centroids[centroids.length-1].x = topLeftCorner.x + 25 + RECT_WIDTH;
 	centroids[centroids.length-1].y = RECT_HEIGHT + 3;
+	for(var i = 0; i < centroids.length - 3; i++) {
+		while(centroids[i].y <= centroids[centroids.length-1].y + 10) {
+			centroids[i].y += 10;
+		}
+	}
 
 	nextUpdateIsRecluster = true;
 	initStats();
@@ -204,6 +234,12 @@ function computeCentroids() {
 			centroids[i].y = HEIGHT * 5;
 		}
 	}
+	old_error = error;
+	error = 0;
+	for(var i = 0; i < points.length; i++) {
+		error += dist(points[i], centroids[COLORS.indexOf(points[i].color)]);
+	}
+
 	numIters++;
 }
 
@@ -216,7 +252,7 @@ function update() {
 		converged = true;
 		convergedText = " (convergence complete -- needed " + numIters + " iterations)";
 	}
-	document.getElementById("error").innerHTML = "Error: " + error + convergedText;
+	document.getElementById("error").innerHTML = "Error: " + showNumberWithCommas(error) + convergedText;
 }
 
 function clickStep() {
