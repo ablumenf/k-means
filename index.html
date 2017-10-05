@@ -1,0 +1,89 @@
+<head>
+	<meta charset="utf-8">
+	<title>Aaron Blumenfeld</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Aaron Blumenfeld">
+	<meta name="author" content="Aaron Blumenfeld">
+
+	<link href="../css/bootstrap.css" rel="stylesheet">
+	<style>
+		body {
+			padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+		}
+		* {
+		   font-size: 16px;
+		}
+	</style>
+	<link href="../css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="https://d3js.org/d3.v4.js"></script>
+</head>
+
+<body>
+
+<div class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+		<a class="brand" href="http://www.aaronblumenfeld.com">Aaron Blumenfeld</a>
+			<div class="nav-collapse collapse">
+				<ul class="nav">
+					<li><a href="http://www.aaronblumenfeld.com">Home</a></li>
+					<li><a href="../sunny">Sunny</a></li>
+					<li class="active"><a href="../kmeans">k-Means</a></li>
+					<li><a href="mailto:me@aaronblumenfeld.com">Contact</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container">
+
+	<h4>K-Means Visualization (specifically 3-means)</h4>
+
+	<hr>
+
+	<p>Points are generated (semi-)randomly: 135 points are generated. A 30-point cluster in the top left is generated,
+	followed by a 20-point cluster in the middle right, followed by a 35-point cluster in the bottom. 50 points are then
+	randomly generated uniformly across the entire canvas. Initial centroids are generated randomly. No special algorithms
+	(like k-means++) are used here. You can also keep the same points and generate new random initial centroids.</p>
+
+	<p>Some stats are also shown below, demonstrating the speed of convergence and the fact that k-means only
+	converges to a local minimum, not necessarily an absolute minimum (try choosing with different initial clusters and looking
+	at the error term, and the cluster sizes). An iteration is defined to be a cluster assignment <i>and</i> a re-computation
+	of the centroids.</p>
+
+	<p>How does the bad initial centroids button work? It looks in the top for a 50x100 empty box (no points inside) and sticks
+	a centroid at the top middle of that box, then two other centroids to the left and right, slightly below it. Since all of
+	the points are guaranteed to be generated with height at least 10, the highest centroid should be farther away from all
+	points than every other centroid.</p>
+
+	<div id="kmeans"></div>
+	<div>
+		<input name="stepButton"
+		   type="button"
+		   value="Step"
+		   onclick="clickStep()" />
+		<input name="resetButton"
+			type="button"
+			value="Reset"
+			onclick="resetPoints()" />
+		<input name="resetButton"
+			type="button"
+			value="Reset (same points, new initial centroids)"
+			onclick="resetCentroids()" />
+		<input name="resetButton"
+			type="button"
+			value="Bad initial centroids (converges with an empty cluster)"
+			onclick="badCentroids()" />
+	</div>
+	<div id="iters"></div>
+	<div id="sizes"></div>
+	<div id="error"></div>
+	<script src="kmeans.js"></script>
+</div>
+</body>
