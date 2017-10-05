@@ -19,7 +19,7 @@ only converges to a local minimum, not necessarily an absolute minimum (try choo
 initial clusters and looking at the error term, and the cluster sizes). An iteration is defined to
 be a cluster assignment and a re-computation of the centroids.
 
-How does the bad initial centroids button work? It looks in the top for a 50x100 empty box
+How does the bad initial centroids button work? It looks in the top for a 100x60 empty box
 (no points inside) and sticks a centroid at the top middle of that box, then two other centroids
 to the left and right, slightly below it. Since all of the points are guaranteed to be generated
 with height at least 10, the highest centroid should be farther away from all points than every

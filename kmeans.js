@@ -117,7 +117,6 @@ function resetCentroids() {
 }
 
 function findSmallEmptySquare() {
-	var point = {x: -1, y: -1};
 	for(var i = 0; i < WIDTH; i += 50) {
 		var okToReturn = true;
 		for(var j = 0; j < points.length; j++) {
@@ -129,7 +128,7 @@ function findSmallEmptySquare() {
 			return {x: i, y: 0};
 		}
 	}
-	return point;
+	return {x: -1, y: -1};
 }
 
 function badCentroids() { // assumes at least 3 clusters
