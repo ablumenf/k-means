@@ -13,6 +13,8 @@ var HEIGHT = 480;
 var RADIUS = 5;
 var RECT_WIDTH = 15;
 var RECT_HEIGHT = 15;
+var OFFSET = 120;
+var bad_centroids = false;
 
 var TOP_LEFT_CLUSTER_SIZE = 30;
 var MIDDLE_RIGHT_CLUSTER_SIZE = 20;
@@ -116,6 +118,7 @@ function initCentroids() {
 
 function resetPoints() {
 	d3.select("#svg").remove();
+	bad_centroids = false;
 	initPoints();
 	numIters = 0;
 	error = 0;
@@ -129,6 +132,7 @@ function resetPoints() {
 
 function resetCentroids() {
 	d3.select("#svg").remove();
+	undoBadPoints(points);
 	for(var i = 0; i < points.length; i++) {
 		points[i].color = "black";
 	}
@@ -143,55 +147,117 @@ function resetCentroids() {
 	paintPointsAndCentroids();
 }
 
-function findSmallEmptySquare() {
-	for(var i = 0; i < WIDTH; i += 50) {
-		var okToReturn = true;
-		for(var j = 0; j < points.length; j++) {
-			if(points[j].x > i && points[j].x < i + 100 && points[j].y > 0 && points[j].y < 60) {
-				okToReturn = false;
-			}
-		}
-		if(okToReturn) {
-			return {x: i, y: 0};
-		}
+/* return true if there's an empty cluster */
+function kmeansYieldsEmptyCluster(points, centroids) {
+	var tempPoints = [];
+	var tempCentroids = [];
+	for(var i = 0; i < points.length; i++) {
+		tempPoints.push({x: points[i].x, y: points[i].y, color: points[i].color});
 	}
-	return {x: -1, y: -1};
+	for(var i = 0; i < centroids.length; i++) {
+		tempCentroids.push({x: centroids[i].x, y: centroids[i].y, color: centroids[i].color});
+	}
+
+	var converged = false;
+	var temp_error = -1;
+	var temp_old_error = -2;
+	var clusterSizeProduct = 0;
+	while(!converged) {
+		recluster(tempPoints, tempCentroids);
+		clusterSizeProduct = computeCentroids(tempPoints, tempCentroids);
+		temp_old_error = temp_error;
+		temp_error = 0;
+		for(var i = 0; i < tempPoints.length; i++) {
+			error += dist(tempPoints[i], tempCentroids[COLORS.indexOf(tempPoints[i].color)]);
+		}
+		if(temp_error === temp_old_error) converged = true;
+	}
+	numIters = 0;
+	return clusterSizeProduct === 0;
+}
+
+/* translate/compress points */
+function badPoints(points) {
+	if(!bad_centroids) {
+		for(var i = 0; i < points.length; i++) {
+			points[i].x = points[i].x * (WIDTH - OFFSET)/WIDTH + OFFSET;
+			points[i].y = points[i].y * (HEIGHT - OFFSET)/HEIGHT + OFFSET;
+		}
+		bad_centroids = true;
+	}
+	for(var i = 0; i < points.length; i++) {
+			points[i].color = "black";
+	}
+}
+
+/* translate/scale points */
+function undoBadPoints(points) {
+	if(bad_centroids) {
+		for(var i = 0; i < points.length; i++) {
+			points[i].x = (points[i].x - OFFSET) * WIDTH/(WIDTH - OFFSET);
+			points[i].y = (points[i].y - OFFSET) * HEIGHT/(HEIGHT - OFFSET);
+		}
+		bad_centroids = false;
+	}
+	for(var i = 0; i < points.length; i++) {
+		points[i].color = "black";
+	}
 }
 
 function badCentroids() { // assumes at least 3 clusters
 	d3.select("#svg").remove();
-	for(var i = 0; i < points.length; i++) {
-		points[i].color = "black";
-	}
+	badPoints(points);
 	numIters = 0;
 	error = 0;
 	converged = false;
 	convergedText = "";
 
-	var topLeftCorner = findSmallEmptySquare();
+	var topLeftCorner = {
+		x: Math.max(Math.floor(Math.random() * WIDTH) - 100, 0),
+		y: 0
+	};
 	centroids = initCentroids();
 	centroids[centroids.length-3].x = topLeftCorner.x + 25;
 	centroids[centroids.length-3].y = RECT_HEIGHT/2 + 1;
 	centroids[centroids.length-2].x = topLeftCorner.x + 25 - RECT_WIDTH;
 	centroids[centroids.length-2].y = RECT_HEIGHT + 3;
-	centroids[centroids.length-1].x = topLeftCorner.x + 25 + RECT_WIDTH;
-	centroids[centroids.length-1].y = RECT_HEIGHT + 3;
+	centroids[centroids.length-1].x = topLeftCorner.x + RECT_WIDTH + 25 + Math.random() * 100;
+	centroids[centroids.length-1].y = RECT_HEIGHT + Math.random() * 50 + 50;
+
 	for(var i = 0; i < centroids.length - 3; i++) {
 		while(centroids[i].y <= centroids[centroids.length-1].y + 10) {
 			centroids[i].y += 10;
 		}
 	}
 
+	paintPointsAndCentroids();
+	var stringToPrint = "These centroids will " + (kmeansYieldsEmptyCluster(points, centroids) ? "" : "not ") + "yield an empty cluster!";
+
 	nextUpdateIsRecluster = true;
 	initStats();
-	paintPointsAndCentroids();
+
+	d3.select("#svg")
+	.append("text")
+	.attr("id", "tempText")
+	.attr("x", 100)
+	.attr("y", 80)
+	.style("font-size", "16px")
+	.style("font-family", "Arial, Helvetica, sans-serif")
+	.style("font-weight", "bold")
+	.attr("fill", "#525252")
+	.text(stringToPrint);
+
+	d3.select("#tempText")
+	.transition()
+	.delay(TIME * 2.5)
+	.remove();
 }
 
 function dist(p, q) {
 	return (q.x - p.x)*(q.x - p.x) + (q.y - p.y)*(q.y - p.y);
 }
 
-function recluster() {
+function recluster(points, centroids) {
 	var cluster_sizes = [];
 	var distance_from_cluster = [];
 	for(var i = 0; i < NUM_CLUSTERS; i++) {
@@ -215,25 +281,29 @@ function recluster() {
 	}
 }
 
-function computeCentroids() {
-	var centroidX = [], centroidY = [], centroidSize = [];
+/*
+Empty clusters considered to have average 0. Could also do NaN. This definition seems reasonable.
+Let S = {x_1, ..., x_n}. Define A_0 = 0, A_i = ((i-1)A_{i-1} + x_i)/i. Then this agrees with both
+an empty average being 0 and with A_n = average over S.
+*/
+function computeCentroids(points, centroids) {
+	var centroidX = [], centroidY = [], clusterSize = [];
 	for(var i = 0; i < NUM_CLUSTERS; i++) {
 		centroidX.push(0);
 		centroidY.push(0);
-		centroidSize.push(0);
+		clusterSize.push(0);
 	}
 	for(var i = 0; i < points.length; i++) {
 		centroidX[COLORS.indexOf(points[i].color)] += points[i].x;
 		centroidY[COLORS.indexOf(points[i].color)] += points[i].y;
-		centroidSize[COLORS.indexOf(points[i].color)]++;
+		clusterSize[COLORS.indexOf(points[i].color)]++;
 	}
 	for(var i = 0; i < centroids.length; i++) {
-		if(centroidSize[i] > 0) {
-			centroids[i].x = centroidX[i] / centroidSize[i];
-			centroids[i].y = centroidY[i] / centroidSize[i];
-		} else { // hack to get centroid of empty cluster to not appear (should these centroids be moved to (0, 0)?)
-			centroids[i].x = WIDTH * 5;
-			centroids[i].y = HEIGHT * 5;
+		if(clusterSize[i] > 0) {
+			centroids[i].x = centroidX[i] / clusterSize[i];
+			centroids[i].y = centroidY[i] / clusterSize[i];
+		} else {
+			centroids[i].x = centroids[i].y = 0; // considering empty average to be 0, not some sort of NaN
 		}
 	}
 	old_error = error;
@@ -243,11 +313,17 @@ function computeCentroids() {
 	}
 
 	numIters++;
+
+	var rval = 1;
+	for(var i = 0; i < clusterSize.length; i++) {
+		rval *= clusterSize[i];
+	}
+	return rval; // returns product of cluster sizes to see if there's an empty cluster
 }
 
 function update() {
-	if(nextUpdateIsRecluster) recluster();
-	else computeCentroids();
+	if(nextUpdateIsRecluster) recluster(points, centroids);
+	else computeCentroids(points, centroids);
 	nextUpdateIsRecluster = !nextUpdateIsRecluster;
 	initStats();
 	if(!converged && error === old_error) {
@@ -274,10 +350,18 @@ function clickStep() {
 	.selectAll("rect")
 	.transition()
 	.duration(TIME)
-	.attr("x", d => d.x-7.5)
-	.attr("y", d => d.y-7.5)
+	.attr("x", d => pointLocForDisplaying(d.x, d.y).x - RECT_WIDTH/2)
+	.attr("y", d => pointLocForDisplaying(d.x, d.y).y - RECT_HEIGHT/2)
 	.attr("stroke-width", 1.5)
 	.attr("stroke", "#000");
+}
+
+function pointLocForDisplaying(x, y) {
+	var point = {x: -RECT_WIDTH, y: -RECT_HEIGHT};
+	if(x === 0 && y === 0) {
+		return point;
+	}
+	return {x: x, y: y};
 }
 
 initPoints();

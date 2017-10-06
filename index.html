@@ -57,10 +57,7 @@
 	at the error term, and the cluster sizes). An iteration is defined to be a cluster assignment <i>and</i> a re-computation
 	of the centroids.</p>
 
-	<p>How does the bad initial centroids button work? It looks in the top for a 100x60 empty box (no points inside) and sticks
-	a centroid at the top middle of that box, then two other centroids to the left and right, slightly below it. Since all of
-	the points are guaranteed to be generated with height at least 10, the highest centroid should be farther away from all
-	points than at least one other centroid.</p>
+	<p>The bad initial centroids button chooses initial centroids so that it (usually) converges with an empty cluster.</p>
 
 	<div> <b>How many clusters?</b>
 		<select id="_k" name="k" onchange="changeNumClusters(parseInt(this[this.selectedIndex].value));">
@@ -88,9 +85,10 @@
 			onclick="resetCentroids()" />
 		<input name="resetButton"
 			type="button"
-			value="Bad initial centroids (converges with an empty cluster)"
+			value="Bad initial centroids"
 			onclick="badCentroids()" />
 	</div>
+	<hr>
 	<div id="iters"></div>
 	<div id="sizes"></div>
 	<div id="error"></div>
