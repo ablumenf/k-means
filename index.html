@@ -1,97 +1,173 @@
-<head>
-	<meta charset="utf-8">
-	<title>Aaron Blumenfeld</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="Aaron Blumenfeld">
-	<meta name="author" content="Aaron Blumenfeld">
+<!DOCTYPE html>
+<html lang="en">
 
-	<link href="../css/bootstrap.css" rel="stylesheet">
-	<style>
-		body {
-			padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-		}
-		* {
-		   font-size: 16px;
-		}
-	</style>
-	<link href="../css/bootstrap-responsive.css" rel="stylesheet">
-	<script src="https://d3js.org/d3.v4.js"></script>
-</head>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="">
+		<meta name="author" content="">
 
-<body>
+    	<title>k-means</title>
 
-<div class="navbar navbar-inverse navbar-fixed-top">
-	<div class="navbar-inner">
-		<div class="container">
-			<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-				<span class="icon-bar"></span>
-				<span class="icon-bar"></span>
-				<span class="icon-bar"></span>
-			</button>
-		<a class="brand" href="http://www.aaronblumenfeld.com">Aaron Blumenfeld</a>
-			<div class="nav-collapse collapse">
-				<ul class="nav">
-					<li><a href="http://www.aaronblumenfeld.com">Home</a></li>
-					<li><a href="../sunny">Sunny</a></li>
-					<li class="active"><a href="../kmeans">k-Means</a></li>
-					<li><a href="mailto:me@aaronblumenfeld.com">Contact</a></li>
-				</ul>
+    	<link href="../css/bootstrap.min.css" rel="stylesheet">
+    	<link href="../css/ab.css" rel="stylesheet">
+    	<script src="https://d3js.org/d3.v4.js"></script>
+	</head>
+
+  <body>
+
+		<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark fixed-top">
+			<div class="container">
+				<a class="navbar-brand" href="http://www.aaronblumenfeld.com">Aaron Blumenfeld</a>
+				<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarResponsive">
+					<ul class="navbar-nav ml-2">
+						<li class="nav-item">
+							<a class="nav-link" href="http://www.aaronblumenfeld.com">Home</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../sunny">Sunny</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../kmeans">k-Means</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../graph-vis">Graph Vis</a>
+						</li>
+						<li class="dropdown">
+							<a class="nav-link dropdown-toggle" href="../crypto" id="navbarDropdown" aria-haspopup="true" aria-expanded="false">
+								Crypto
+							</a>
+							<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
+								<a class="dropdown-item" href="../crypto/numtheory">Number Theory</a>
+								<a class="dropdown-item" href="../crypto/rsa">RSA</a>
+								<a class="dropdown-item" href="../crypto/dl">Discrete Logs</a>
+								<a class="dropdown-item" href="../crypto/ecc">Elliptic Curve Cryptography</a>
+							</div>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../teaching">Teaching</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../contact">Contact</a>
+						</li>
+					</ul>
+				</div>
 			</div>
+		</nav>
+
+		<div class="container mt-3">
+
+			<h4>K-Means Visualization</h4>
+
+			<hr>
+
+			<div id="accordion" class="mb-3">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="mb-0">
+							<button class="btn btn-link" data-toggle="collapse" data-target="#kmeans-details" aria-expanded="true" aria-controls="kmeans-details">
+								Details of point generation
+							</button>
+						</h5>
+					</div>
+
+					<div id="kmeans-details" class="collapse" data-parent="#accordion">
+						<div class="card-body">
+							<p>Points are generated (semi-)randomly: 135 points are generated. A 30-point cluster in the top left is generated,
+								followed by a 20-point cluster in the middle right, followed by a 35-point cluster in the bottom. 50 points are then
+								randomly generated uniformly across the entire canvas. Initial centroids are generated randomly. No special algorithms
+								(like k-means++) are used here. You can also keep the same points and generate new random initial centroids.</p>
+
+							<p>Some stats are also shown below, demonstrating the speed of convergence and the fact that k-means only
+								converges to a local minimum, not necessarily an absolute minimum (try choosing with different initial clusters and looking
+								at the error term, and the cluster sizes). An iteration is defined to be a cluster assignment <i>and</i> a re-computation
+								of the centroids.</p>
+
+							<p>The bad initial centroids button chooses initial centroids so that it (usually) converges with an empty cluster.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div> <b>How many clusters?</b>
+				<select id="_k" class="form-control ml-2" name="k" style="width: 70px; display: inline-block;" onchange="changeNumClusters(parseInt(this[this.selectedIndex].value));">
+					<option value="3" selected="selected">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+				</select>
+			</div>
+			<script type="text/javascript">
+				document.querySelector("#_k").selectedIndex = 0; // necessary in firefox
+			</script>
+			<div class="row">
+				<div class="col-lg-3"></div>
+				<div id="kmeans" class="col-lg-6"></div>
+				<div class="col-lg-3"></div>
+			</div>
+			<div class="row">
+				<div class="col-lg-4 col-md-2 col-sm-1 col-1"></div>
+				<div class="col-lg-6 col-md-8 col-sm-11 col-11">
+					<input name="stepButton"
+					   type="button"
+					   class="btn btn-success"
+					   value="Step"
+					   onclick="clickStep()" />
+					<input name="resetButton"
+						type="button"
+						class="btn btn-danger"
+						value="Reset"
+						onclick="resetPoints()" />
+					<input name="resetCentroidsButton"
+						type="button"
+						class="btn btn-info"
+						value="Reset Centroids"
+						onclick="resetCentroids()" />
+					<input name="badCentroidsButton"
+						type="button"
+						class="btn btn-primary"
+						value="Bad initial centroids"
+						onclick="badCentroids()" />
+				</div>
+				<div class="col-lg-2 col-md-2 col-sm-0 col-0"></div>
+			</div>
+
+			<div class="row">
+				<div class="col-lg-4 col-md-2 col-sm-1 col-1"></div>
+				<div class="col-lg-5 col-md-8 col-sm-11 col-11">
+				<table class="table table-borderless table-hover mt-2">
+					<tbody>
+						<tr>
+							<th scope="row">Number of Iterations</th>
+							<td id="iters" style="min-width: 150px;"></td>
+						</tr>
+						<tr>
+							<th scope="row">Converged after</th>
+							<td id="converged" style="min-width: 150px;">TBD iterations</td>
+						</tr>
+						<tr>
+							<th scope="row">Cluster Sizes</th>
+							<td id="sizes" style="min-width: 150px;"></td>
+						</tr>
+						<tr>
+							<th scope="row">Error</th>
+							<td id="error" style="min-width: 150px;"></td>
+						</tr>
+					</tbody>
+				</table></div>
+				<div class="col-lg-3 col-md-2 col-sm-0 col-0"></div>
+			</div>
+
+			</div>
+			<script src="kmeans.js"></script>
+
 		</div>
-	</div>
-</div>
 
-<div class="container">
+		<script src="../js/jquery.min.js"></script>
+		<script src="../js/bootstrap.bundle.min.js"></script>
 
-	<h4>K-Means Visualization</h4>
+  </body>
 
-	<hr>
-
-	<p>Points are generated (semi-)randomly: 135 points are generated. A 30-point cluster in the top left is generated,
-	followed by a 20-point cluster in the middle right, followed by a 35-point cluster in the bottom. 50 points are then
-	randomly generated uniformly across the entire canvas. Initial centroids are generated randomly. No special algorithms
-	(like k-means++) are used here. You can also keep the same points and generate new random initial centroids.</p>
-
-	<p>Some stats are also shown below, demonstrating the speed of convergence and the fact that k-means only
-	converges to a local minimum, not necessarily an absolute minimum (try choosing with different initial clusters and looking
-	at the error term, and the cluster sizes). An iteration is defined to be a cluster assignment <i>and</i> a re-computation
-	of the centroids.</p>
-
-	<p>The bad initial centroids button chooses initial centroids so that it (usually) converges with an empty cluster.</p>
-
-	<div> <b>How many clusters?</b>
-		<select id="_k" name="k" onchange="changeNumClusters(parseInt(this[this.selectedIndex].value));">
-			<option value="3" selected="selected">3</option>
-			<option value="4">4</option>
-			<option value="5">5</option>
-		</select>
-	</div>
-	<script type="text/javascript">
-		document.querySelector("#_k").selectedIndex = 0; // necessary in firefox
-	</script>
-	<div id="kmeans"></div>
-	<div>
-		<input name="stepButton"
-		   type="button"
-		   value="Step"
-		   onclick="clickStep()" />
-		<input name="resetButton"
-			type="button"
-			value="Reset"
-			onclick="resetPoints()" />
-		<input name="resetButton"
-			type="button"
-			value="Reset (same points, new initial centroids)"
-			onclick="resetCentroids()" />
-		<input name="resetButton"
-			type="button"
-			value="Bad initial centroids"
-			onclick="badCentroids()" />
-	</div>
-	<hr>
-	<div id="iters"></div>
-	<div id="sizes"></div>
-	<div id="error"></div>
-	<script src="kmeans.js"></script>
-</div>
-</body>
+</html>

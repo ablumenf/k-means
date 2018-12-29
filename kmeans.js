@@ -4,7 +4,7 @@ var nextUpdateIsRecluster = true;
 var TIME = 1000;
 var numIters = 0;
 var converged = false;
-var convergedText = "";
+var convergedText = "TBD iterations";
 var error = 0;
 var old_error = 0;
 
@@ -49,14 +49,14 @@ function showNumberWithCommas(x) {
 }
 
 function initStats() {
-	document.getElementById("iters").innerHTML = "Number of iterations: " + numIters;
-	document.getElementById("error").innerHTML = "Error: TBD";
+	document.getElementById("iters").innerHTML = numIters;
+	document.getElementById("error").innerHTML = "TBD";
 	var cSizes = "";
 	for(var i = 0; i < centroids.length - 1; i++) {
 		cSizes += centroids[i].size + ", ";
 	}
 	cSizes += centroids[centroids.length-1].size;
-	document.getElementById("sizes").innerHTML = "Cluster sizes: " + cSizes;
+	document.getElementById("sizes").innerHTML = cSizes;
 }
 
 function paintPointsAndCentroids() {
@@ -123,7 +123,8 @@ function resetPoints() {
 	numIters = 0;
 	error = 0;
 	converged = false;
-	convergedText = "";
+	convergedText = "TBD iterations";
+	document.getElementById("converged").innerHTML = convergedText;
 	for(var i = 0; i < centroids.length; i++) {
 		centroids[i].size = 0;
 	}
@@ -139,7 +140,8 @@ function resetCentroids() {
 	numIters = 0;
 	error = 0;
 	converged = false;
-	convergedText = "";
+	convergedText = "TBD iterations";
+	document.getElementById("converged").innerHTML = convergedText;
 
 	centroids = initCentroids();
 	nextUpdateIsRecluster = true;
@@ -210,7 +212,9 @@ function badCentroids() { // assumes at least 3 clusters
 	numIters = 0;
 	error = 0;
 	converged = false;
-	convergedText = "";
+	convergedText = "TBD iterations";
+	document.getElementById("converged").innerHTML = convergedText;
+
 
 	var topLeftCorner = {
 		x: Math.max(Math.floor(Math.random() * WIDTH) - 100, 0),
@@ -328,9 +332,10 @@ function update() {
 	initStats();
 	if(!converged && error === old_error) {
 		converged = true;
-		convergedText = " (convergence complete -- needed " + numIters + " iterations)";
+		convergedText = numIters + " iterations";
 	}
-	document.getElementById("error").innerHTML = "Error: " + showNumberWithCommas(error) + convergedText;
+	document.getElementById("error").innerHTML = showNumberWithCommas(error.toFixed(3));
+	document.getElementById("converged").innerHTML = convergedText;
 }
 
 function clickStep() {
