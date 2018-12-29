@@ -1,7 +1,7 @@
 # k-Means Visualization
 
 k-means visualization <br>
-Last Updated: October 6, 2017 <br>
+Last Updated: September 21, 2018 <br>
 Author: Aaron Blumenfeld
 
 ![k-means](kmeans_screenshot.jpg)
